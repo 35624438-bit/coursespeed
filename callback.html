@@ -61,12 +61,11 @@
       const detailDiv = document.getElementById('detail');
       const params = new URLSearchParams(window.location.search);
 
-      const paymentStatus = params.get('status') || 'unknown';
-      const subscriptionId = params.get('subscription_id') || 'N/A';
-      const plan = params.get('plan') || 'unknown';
+      const subscriptionId = params.get('subscription_id') || params.get('checkout_id') || null;
+      const plan = params.get('plan') || params.get('product_name') || 'unknown';
 
       detailDiv.innerHTML = `
-        Subscription: ${subscriptionId}<br>
+        Subscription: ${subscriptionId || 'N/A'}<br>
         Plan: ${plan}<br>
         Extension ID: ${EXTENSION_ID}
       `;
@@ -78,19 +77,19 @@
         return;
       }
 
-      if (paymentStatus !== 'success') {
+      if (!subscriptionId) {
         statusDiv.className = 'status error';
-        statusDiv.textContent = '❌ Payment was not successful';
+        statusDiv.textContent = '❌ No subscription ID found in callback';
         return;
       }
 
-      // 通知 Chrome Extension
+      // Notify Chrome Extension
       chrome.runtime.sendMessage(EXTENSION_ID, {
         type: 'PAYMENT_SUCCESS',
         data: {
           subscriptionId: subscriptionId,
           plan: plan,
-          status: paymentStatus,
+          status: 'success',
           timestamp: new Date().toISOString()
         }
       }, (response) => {
@@ -102,7 +101,7 @@
         } else {
           statusDiv.className = 'status success';
           statusDiv.textContent = '✅ Premium Activated!';
-          detailDiv.innerHTML += '<br><br>Return to your streaming site and refresh the page.';
+          detailDiv.innerHTML += '<br><br>Return to your course page and refresh the page.';
         }
       });
     })();
