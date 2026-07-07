@@ -44,7 +44,7 @@
      * CourseSpeed — Payment Callback
      * Deploy to GitHub Pages as the Creem payment success redirect target.
      *
-     * Usage: https://35624438-bit.github.io/coursespeed/callback.html?status=success&subscription_id=xxx&plan=yearly
+     * Usage: https://joycraft.dev/callback.html?status=success&subscription_id=xxx&plan=yearly
      *
      * ⚠️ BEFORE CWS SUBMISSION:
      *   1. Replace YOUR_EXTENSION_ID below with the actual 32-char Extension ID
@@ -64,16 +64,12 @@
       const subscriptionId = params.get('subscription_id') || params.get('checkout_id') || null;
       const plan = params.get('plan') || params.get('product_name') || 'unknown';
 
-      detailDiv.innerHTML = `
-        Subscription: ${subscriptionId || 'N/A'}<br>
-        Plan: ${plan}<br>
-        Extension ID: ${EXTENSION_ID}
-      `;
+      // Safe: textContent prevents XSS from URL parameters
+      detailDiv.textContent = 'Subscription: ' + (subscriptionId || 'N/A') + '\nPlan: ' + plan;
 
       if (EXTENSION_ID === 'YOUR_EXTENSION_ID') {
         statusDiv.className = 'status info';
         statusDiv.textContent = '⚠️ Extension ID not configured';
-        detailDiv.innerHTML += '<br><br>Replace YOUR_EXTENSION_ID with the actual ID from chrome://extensions';
         return;
       }
 
@@ -95,13 +91,10 @@
       }, (response) => {
         if (chrome.runtime.lastError) {
           statusDiv.className = 'status error';
-          statusDiv.textContent = '❌ Failed to activate extension';
-          detailDiv.innerHTML += '<br><br>Error: ' + chrome.runtime.lastError.message;
-          detailDiv.innerHTML += '<br><br>Please make sure CourseSpeed is installed and enabled.';
+          statusDiv.textContent = '❌ Failed to activate extension: ' + chrome.runtime.lastError.message;
         } else {
           statusDiv.className = 'status success';
-          statusDiv.textContent = '✅ Premium Activated!';
-          detailDiv.innerHTML += '<br><br>Return to your course page and refresh the page.';
+          statusDiv.textContent = '✅ Premium Activated! Return to your course page and refresh.';
         }
       });
     })();
